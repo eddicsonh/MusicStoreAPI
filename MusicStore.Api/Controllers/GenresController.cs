@@ -15,9 +15,9 @@ namespace MusicStore.Api.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<Genre>> Get()
+        public IActionResult<List<Genre>> Get()
         {
-            return this.repository.Get();
+            return this.repository.GetAsync();
         }
 
         [HttpGet("{id:int}")]
