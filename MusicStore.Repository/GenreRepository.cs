@@ -4,7 +4,7 @@ using MusicStore.Persistence;
 
 namespace MusicStore.Repository
 {
-    public class GenreRepository
+    public class GenreRepository : IGenreRepository
     {
         private readonly ApplicationDbContext context;
 
@@ -20,12 +20,16 @@ namespace MusicStore.Repository
 
         public async Task<List<Genre>> GetAsync()
         {
-            return await context.Genres.ToListAsync();
+            return await context.Genres
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         public async Task<Genre?> GetAsync(int id)
         {
-            return await context.Genres.FirstOrDefaultAsync(x => x.Id == id);
+            return await context.Genres
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<int> AddAsync(Genre genre)
@@ -39,7 +43,7 @@ namespace MusicStore.Repository
         {
             var item = await GetAsync(id);
 
-            if (item is not null) 
+            if (item is not null)
             {
                 item.Name = genre.Name;
                 item.Status = genre.Status;
@@ -59,8 +63,8 @@ namespace MusicStore.Repository
 
             if (item is not null)
             {
-               context.Genres.Remove(item);
-               await context.SaveChangesAsync();
+                context.Genres.Remove(item);
+                await context.SaveChangesAsync();
             }
             else
             {
