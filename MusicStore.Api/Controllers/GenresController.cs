@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MusicStore.Entities;
 using MusicStore.Repository;
+using MusicStore.Dto;
+using System.Net;
+using Azure;
 
 namespace MusicStore.Api.Controllers
 {
@@ -20,92 +23,119 @@ namespace MusicStore.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
+            //Por que se instancia y no se injecta?
+            //R: Por investigar
+            var response = new BaseResponseGeneric<ICollection<Genre>>();
             try
             {
-                var data = await this.repository.GetAsync();
+                response.Data = await this.repository.GetAsync();
+                response.Success = true;
                 logger.LogInformation($"Obteniendo todos los generos musicales.");
-                return Ok(data);
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                logger.LogError($"{ex.Message}");
-                return BadRequest("Ocurrio un error al obtener la información.");
+                response.ErrorMessage = $"Ocurrio un error al obtener la información.";
+                logger.LogError($"{response.ErrorMessage}: {ex.Message}");
+                return BadRequest(response);
             }
         }
 
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Get(int id)
         {
+            var response = new BaseResponseGeneric<Genre>();
             try
             {
-                var item = await this.repository.GetAsync(id);
-                if (item is null)
-                    return NotFound($"No se encontro genero musical con el id: {id}");
-
+                response.Data = await this.repository.GetAsync(id);
+                response.Success = true;
+                if (response.Data is null)
+                {
+                    logger.LogWarning($"No se encontro genero musical con el id: {id}");
+                    return NotFound(response);
+                }
+                    
                 logger.LogInformation($"Obteniendo el genero musicale por id: {id}.");
-                return Ok(item);
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                logger.LogError($"{ex.Message}");
-                return BadRequest("Ocurrio un error al obtener la información.");
+                response.ErrorMessage = $"Ocurrio un error al obtener la información.";
+                logger.LogError($"{response.ErrorMessage}: {ex.Message}");
+                return BadRequest(response);
             }
         }
 
         [HttpPost]
         public async Task<IActionResult> Post(Genre genre)
         {
+            var response = new BaseResponseGeneric<int>();
             try
             {
                 await this.repository.AddAsync(genre);
+                response.Data = genre.Id;
+                response.Success = true;
                 logger.LogInformation($"genero musical con id: {genre.Id} insertado");
-                return Ok();
+                return StatusCode((int)HttpStatusCode.Created, response);
             }
             catch (Exception ex)
             {
-                logger.LogError($"{ex.Message}");
-                return BadRequest("Ocurrio un error al insertar la información");
+                response.ErrorMessage = $"Ocurrio un error al obtener la información.";
+                logger.LogError($"{response.ErrorMessage}: {ex.Message}");
+                return BadRequest(response);
             }
         }
 
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Put(int id, Genre genre)
         {
+            var response = new BaseResponse();
             try
             {
                 var item = await this.repository.GetAsync(id);
                 if (item is null)
-                    return NotFound($"No se encontro registro con el id: {id}");
+                {
+                    logger.LogWarning($"No se encontro registro con el id: {id}");
+                    return NotFound(response);
+                }
 
                 await this.repository.UpdateAsync(id, genre);
+                response.Success = true;
                 logger.LogInformation($"Genero musical con id {id} actualizado");
-                return NoContent();
+                return Ok(response);
 
             }
             catch (Exception ex)
             {
-                logger.LogError($"{ex.Message}");
-                return BadRequest("Ocurrio un error al actualizar la información");
+                response.ErrorMessage = $"Ocurrio un error al obtener la información.";
+                logger.LogError($"{response.ErrorMessage}: {ex.Message}");
+                return BadRequest(response);
             }   
         }
 
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
+            var response = new BaseResponse();
             try
             {
                 var item = await this.repository.GetAsync(id);
                 if (item is null)
-                    return NotFound($"No se encontro registro con el id: {id}");
+                {
+                    logger.LogWarning($"No se encontro registro con el id: {id}");
+                    return NotFound(response);
+                }
 
                 await this.repository.DeleteAsync(id);
+                response.Success = true;
                 logger.LogInformation($"Genero musical con id: {id} eliminado");
-                return NoContent();
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                logger.LogError($"{ex.Message}");
-                return BadRequest($"Ocurrio un error al eliminar la información");
+                response.ErrorMessage = $"Ocurrio un error al obtener la información.";
+                logger.LogError($"{response.ErrorMessage}: {ex.Message}");
+                return BadRequest(response);
             }
         }
     }

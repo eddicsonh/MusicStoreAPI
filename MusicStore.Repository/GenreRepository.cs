@@ -27,9 +27,14 @@ namespace MusicStore.Repository
 
         public async Task<Genre?> GetAsync(int id)
         {
-            return await context.Genres
+            var item = await context.Genres
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (item is not null)
+                return item;
+            else
+                throw new InvalidOperationException($"No se encontro el registro con el id: {id}");
         }
 
         public async Task<int> AddAsync(Genre genre)
