@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MusicStore.Dto.Request;
+using MusicStore.Dto.Response;
 using MusicStore.Entities;
 using MusicStore.Persistence;
 
@@ -18,40 +20,68 @@ namespace MusicStore.Repository
 
         #region Methods
 
-        public async Task<List<Genre>> GetAsync()
+        public async Task<List<GenreResponseDto>> GetAsync()
         {
-            return await context.Genres
+            var items =  await context.Genres
                 .AsNoTracking()
                 .ToListAsync();
+
+            //Mapping
+            var genreResponseDto = items.Select(x => new GenreResponseDto { 
+                 Id = x.Id
+                ,Name = x.Name
+                ,Status = x.Status
+            }).ToList();
+
+            return genreResponseDto;
         }
 
-        public async Task<Genre?> GetAsync(int id)
+        public async Task<GenreResponseDto?> GetAsync(int id)
+        {
+            var item = await context.Genres
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            GenreResponseDto genreResponseDto = new GenreResponseDto();
+            if (item is not null)
+            {
+                //Mapping
+                genreResponseDto.Id = item.Id;
+                genreResponseDto.Name = item.Name;
+                genreResponseDto.Status = item.Status;
+            }
+            else
+                throw new InvalidOperationException($"No se encontro el registro con el id: {id}");
+
+            return genreResponseDto;
+        }
+
+        public async Task<int> AddAsync(GenreRequestDto genreRequestDto)
+        {
+            //Mapping
+            var genre = new Genre 
+            {
+                Name = genreRequestDto.Name,
+                Status = genreRequestDto.Status,
+            };
+
+            context.Genres.Add(genre);
+            await context.SaveChangesAsync();
+            return genre.Id;
+        }
+
+        public async Task UpdateAsync(int id, GenreRequestDto genreRequestDto)
         {
             var item = await context.Genres
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (item is not null)
-                return item;
-            else
-                throw new InvalidOperationException($"No se encontro el registro con el id: {id}");
-        }
-
-        public async Task<int> AddAsync(Genre genre)
-        {
-            context.Genres.Add(genre);
-            await context.SaveChangesAsync();
-            return genre.Id;
-        }
-
-        public async Task UpdateAsync(int id, Genre genre)
-        {
-            var item = await GetAsync(id);
-
-            if (item is not null)
             {
-                item.Name = genre.Name;
-                item.Status = genre.Status;
+                //Mapping
+                item.Name = genreRequestDto.Name;
+                item.Status = genreRequestDto.Status;
+
                 context.Genres.Update(item);
                 await context.SaveChangesAsync();
             }
@@ -64,7 +94,9 @@ namespace MusicStore.Repository
 
         public async Task DeleteAsync(int id)
         {
-            var item = await GetAsync(id);
+            var item = await context.Genres
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (item is not null)
             {
