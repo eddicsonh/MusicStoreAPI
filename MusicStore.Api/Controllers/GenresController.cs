@@ -25,8 +25,6 @@ namespace MusicStore.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            //Por que se instancia y no se injecta?
-            //R: Por investigar
             var response = new BaseResponseGeneric<ICollection<GenreResponseDto>>();
             try
             {
@@ -51,18 +49,15 @@ namespace MusicStore.Api.Controllers
             {
                 response.Data = await this.repository.GetAsync(id);
                 response.Success = true;
-                if (response.Data is null)
-                {
-                    logger.LogWarning($"No se encontro genero musical con el id: {id}");
-                    return NotFound(response);
-                }
                     
                 logger.LogInformation($"Obteniendo el genero musicale por id: {id}.");
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                response.ErrorMessage = $"Ocurrio un error al obtener la información.";
+                response.ErrorMessage = ex.Message;
+                if (string.IsNullOrEmpty(response.ErrorMessage))
+                    response.ErrorMessage = $"Ocurrio un error al obtener la información.";
                 logger.LogError($"{response.ErrorMessage}: {ex.Message}");
                 return BadRequest(response);
             }
@@ -82,7 +77,9 @@ namespace MusicStore.Api.Controllers
             }
             catch (Exception ex)
             {
-                response.ErrorMessage = $"Ocurrio un error al obtener la información.";
+                response.ErrorMessage = ex.Message;
+                if (string.IsNullOrEmpty(response.ErrorMessage))
+                    response.ErrorMessage = $"Ocurrio un error al obtener la información.";
                 logger.LogError($"{response.ErrorMessage}: {ex.Message}");
                 return BadRequest(response);
             }
@@ -94,13 +91,6 @@ namespace MusicStore.Api.Controllers
             var response = new BaseResponse();
             try
             {
-                var item = await this.repository.GetAsync(id);
-                if (item is null)
-                {
-                    logger.LogWarning($"No se encontro registro con el id: {id}");
-                    return NotFound(response);
-                }
-
                 await this.repository.UpdateAsync(id, genreRequestDto);
                 response.Success = true;
                 logger.LogInformation($"Genero musical con id {id} actualizado");
@@ -121,13 +111,6 @@ namespace MusicStore.Api.Controllers
             var response = new BaseResponse();
             try
             {
-                var item = await this.repository.GetAsync(id);
-                if (item is null)
-                {
-                    logger.LogWarning($"No se encontro registro con el id: {id}");
-                    return NotFound(response);
-                }
-
                 await this.repository.DeleteAsync(id);
                 response.Success = true;
                 logger.LogInformation($"Genero musical con id: {id} eliminado");
