@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MusicStore.Entities;
+using System.Reflection;
 
 namespace MusicStore.Persistence
 {
@@ -15,15 +15,10 @@ namespace MusicStore.Persistence
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<Genre>().Property(n => n.Name).HasMaxLength(50);
+            // con el Assembly.GetExecutingAssembly() se encarga de buscar las clases que heredan de IEntityTypeConfiguration
+            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly()); 
         }
 
-        #endregion
-
-        #region Entities to Tables
-        public DbSet<Genre> Genres { get; set; }
-        
         #endregion
     }
 }
