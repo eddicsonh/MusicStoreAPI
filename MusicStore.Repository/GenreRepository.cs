@@ -22,7 +22,7 @@ namespace MusicStore.Repository
 
         public async Task<List<GenreResponseDto>> GetAsync()
         {
-            var items =  await context.Genres
+            var items =  await context.Set<Genre>()
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -38,7 +38,7 @@ namespace MusicStore.Repository
 
         public async Task<GenreResponseDto?> GetAsync(int id)
         {
-            var item = await context.Genres
+            var item = await context.Set<Genre>()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
 
@@ -65,14 +65,14 @@ namespace MusicStore.Repository
                 Status = genreRequestDto.Status,
             };
 
-            context.Genres.Add(genre);
+            context.Set<Genre>().Add(genre);
             await context.SaveChangesAsync();
             return genre.Id;
         }
 
         public async Task UpdateAsync(int id, GenreRequestDto genreRequestDto)
         {
-            var item = await context.Genres
+            var item = await context.Set<Genre>()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
 
@@ -82,7 +82,7 @@ namespace MusicStore.Repository
                 item.Name = genreRequestDto.Name;
                 item.Status = genreRequestDto.Status;
 
-                context.Genres.Update(item);
+                context.Set<Genre>().Update(item);
                 await context.SaveChangesAsync();
             }
             else
@@ -94,13 +94,13 @@ namespace MusicStore.Repository
 
         public async Task DeleteAsync(int id)
         {
-            var item = await context.Genres
+            var item = await context.Set<Genre>()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (item is not null)
             {
-                context.Genres.Remove(item);
+                context.Set<Genre>().Remove(item);
                 await context.SaveChangesAsync();
             }
             else
