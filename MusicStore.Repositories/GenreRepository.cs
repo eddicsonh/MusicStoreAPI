@@ -14,12 +14,16 @@ namespace MusicStore.Repositories
 
         public async Task<List<Genre>> GetAsync()
         {
-            return await context.Genres.ToListAsync();
+            return await context.Genres
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         public async Task<Genre?> GetAsync(int id)
         {
-            return await context.Genres.FirstOrDefaultAsync(x => x.Id == id);
+            return await context.Genres
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<int> AddAsync(Genre genre)
