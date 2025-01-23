@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MusicStore.Dto;
+using MusicStore.Dto.Request;
+using MusicStore.Dto.Response;
 using MusicStore.Entities;
 using MusicStore.Repositories;
 using System.Net;
-using System.Reflection.Metadata.Ecma335;
 
 namespace MusicStore.Api.Controllers
 {
@@ -23,7 +24,7 @@ namespace MusicStore.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var response = new BaseResponseGenerics<ICollection<Genre>>();
+            var response = new BaseResponseGenerics<ICollection<GenreResponseDto>>();
             try
             {
                 response.Data = await repository.GetAsync();
@@ -42,7 +43,7 @@ namespace MusicStore.Api.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Get(int id)
         {
-            var response = new BaseResponseGenerics<Genre>();
+            var response = new BaseResponseGenerics<GenreResponseDto>();
             try
             {
                 response.Data = await repository.GetAsync(id);
@@ -64,15 +65,15 @@ namespace MusicStore.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post(Genre genre)
+        public async Task<IActionResult> Post(GenreRequestDto genreRequestDto)
         {
             var response = new BaseResponseGenerics<int>();
             try
             {
-                await repository.AddAsync(genre);
-                response.Data = genre.Id;
+                var genreId = await repository.AddAsync(genreRequestDto);
+                response.Data = genreId;
                 response.Success = true;
-                logger.LogInformation($"Genero musical con id {genre.Id} insertado.");
+                logger.LogInformation($"Genero musical con id {genreId} insertado.");
                 return StatusCode((int)HttpStatusCode.Created, response);
             }
             catch (Exception ex)
@@ -85,19 +86,12 @@ namespace MusicStore.Api.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Put(int id, Genre genre)
+        public async Task<IActionResult> Put(int id, GenreRequestDto genreRequestDto)
         {
             var response = new BaseResponse();
             try
             {
-                var item = await repository.GetAsync(id);
-                if (item is null)
-                {
-                    logger.LogWarning($"Genero musical con id {id} no se encontro.");
-                    return NotFound(response);
-                }
-
-                await repository.UpdateAsync(id, genre);
+                await repository.UpdateAsync(id, genreRequestDto);
                 response.Success = true;
                 logger.LogInformation($"Genero musical con id {id} actualizado.");
                 return Ok(response);
@@ -117,13 +111,6 @@ namespace MusicStore.Api.Controllers
             var response = new BaseResponse();
             try
             {
-                var item = await repository.GetAsync(id);
-                if (item is null)
-                {
-                    logger.LogWarning($"Genero musical con id {id} no se encontro.");
-                    return NotFound(response);
-                }
-
                 await repository.DeleteAsync(id);
                 response.Success = true;
                 logger.LogInformation($"Genero musical con id {id} eliminado.");
