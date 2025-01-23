@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using MusicStore.Dto;
 using MusicStore.Entities;
 using MusicStore.Repositories;
+using System.Net;
 using System.Reflection.Metadata.Ecma335;
 
 namespace MusicStore.Api.Controllers
@@ -11,6 +13,7 @@ namespace MusicStore.Api.Controllers
     {
         private readonly IGenreRepository repository;
         private readonly ILogger<GenreController> logger;
+
         public GenreController(IGenreRepository genreRepository, ILogger<GenreController> logger)
         {
             this.repository = genreRepository;
@@ -20,106 +23,118 @@ namespace MusicStore.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
+            var response = new BaseResponseGenerics<ICollection<Genre>>();
             try
             {
-                var data = await repository.GetAsync();
+                response.Data = await repository.GetAsync();
+                response.Success = true;
                 logger.LogInformation($"Se obtuvieron todos los generos musicales.");
-                return Ok(data);
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                logger.LogError($"{ex.Message}");
-                return BadRequest("Ocurrio un error al obtener la información.");
+                response.ErrorMessage = "Ocurrio un error al obtener la información.";
+                logger.LogError(ex, response.ErrorMessage, $"{ex.Message}");
+                return BadRequest(response);
             }
         }
 
         [HttpGet("{id:int}")]
         public async Task<IActionResult> Get(int id)
         {
+            var response = new BaseResponseGenerics<Genre>();
             try
             {
-                var item = await repository.GetAsync(id);
-                if (item is null)
+                response.Data = await repository.GetAsync(id);
+                response.Success = true;
+                if (response.Data is null)
                 {
                     logger.LogWarning($"Genero musical con id {id} no se encontro.");
-                    return NotFound("No se encontro registro");
+                    return NotFound(response);
                 }
-                return Ok(item);
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                logger.LogError($"{ex.Message}");
-                return BadRequest("Ocurrio un error al obtener la información.");
+                response.Success = false;
+                response.ErrorMessage = "Ocurrio un error al obtener la información.";
+                logger.LogError(ex, response.ErrorMessage, $"{ex.Message}");
+                return BadRequest(response);
             }
         }
 
         [HttpPost]
         public async Task<IActionResult> Post(Genre genre)
         {
+            var response = new BaseResponseGenerics<int>();
             try
             {
                 await repository.AddAsync(genre);
+                response.Data = genre.Id;
+                response.Success = true;
                 logger.LogInformation($"Genero musical con id {genre.Id} insertado.");
-                return CreatedAtAction(nameof(Get), new { Id = genre.Id }, genre);
+                return StatusCode((int)HttpStatusCode.Created, response);
             }
             catch (Exception ex)
             {
-                logger.LogError($"{ex.Message}");
-                return BadRequest("Ocurrio un error al guardar la información.");
+                response.Success = false;
+                response.ErrorMessage = "Ocurrio un error al guardar la información.";
+                logger.LogError(ex, $"{response.ErrorMessage}", $"{ex.Message}");
+                return BadRequest(response);
             }
         }
 
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Put(int id, Genre genre)
         {
+            var response = new BaseResponse();
             try
             {
                 var item = await repository.GetAsync(id);
                 if (item is null)
                 {
                     logger.LogWarning($"Genero musical con id {id} no se encontro.");
-                    return NotFound("No se encontro registro");
+                    return NotFound(response);
                 }
 
                 await repository.UpdateAsync(id, genre);
+                response.Success = true;
                 logger.LogInformation($"Genero musical con id {id} actualizado.");
-                return NoContent();
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                logger.LogError($"{ex.Message}");
-                return BadRequest("Ocurrio un error al guardar la información.");
+                response.Success = false;
+                response.ErrorMessage = "Ocurrio un error al guardar la información.";
+                logger.LogError(ex, $"{response.ErrorMessage}", $"{ex.Message}");
+                return BadRequest(response);
             }
         }
 
         [HttpDelete]
         public async Task<IActionResult> Delete(int id)
         {
+            var response = new BaseResponse();
             try
             {
-                try
+                var item = await repository.GetAsync(id);
+                if (item is null)
                 {
-                   var item = await repository.GetAsync(id);
-                    if (item is null)
-                    {
-                        logger.LogWarning($"Genero musical con id {id} no se encontro.");
-                        return NotFound("No se encontro registro");
-                    }
+                    logger.LogWarning($"Genero musical con id {id} no se encontro.");
+                    return NotFound(response);
+                }
 
-                    await repository.DeleteAsync(id);
-                    logger.LogInformation($"Genero musical con id {id} eliminado.");
-                    return NoContent();
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError($"{ex.Message}");
-                    return BadRequest("Ocurrio un error al guardar la información.");
-                }
+                await repository.DeleteAsync(id);
+                response.Success = true;
+                logger.LogInformation($"Genero musical con id {id} eliminado.");
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                logger.LogError($"{ex.Message}");
-                return BadRequest("Ocurrio un error al guardar la información.");
+                response.Success = false;
+                response.ErrorMessage = "Ocurrio un error al borrar la información.";
+                logger.LogError(ex, $"{response.ErrorMessage}", $"{ex.Message}");
+                return BadRequest(response);
             }
         }
     }
