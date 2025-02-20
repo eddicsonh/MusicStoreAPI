@@ -10,12 +10,12 @@ namespace MusicStore.Api.Controllers
 {
     [ApiController]
     [Route("api/genres")]
-    public class GenreController : ControllerBase
+    public class GenresController : ControllerBase
     {
         private readonly IGenreRepository repository;
-        private readonly ILogger<GenreController> logger;
+        private readonly ILogger<GenresController> logger;
 
-        public GenreController(IGenreRepository genreRepository, ILogger<GenreController> logger)
+        public GenresController(IGenreRepository genreRepository, ILogger<GenresController> logger)
         {
             this.repository = genreRepository;
             this.logger = logger;

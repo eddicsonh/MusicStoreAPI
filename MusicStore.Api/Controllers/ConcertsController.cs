@@ -31,7 +31,7 @@ namespace MusicStore.Api.Controllers
         [HttpGet("title")]
         public async Task<IActionResult> Get(string? title)
         {
-            var concerts = await repository.GetAsync(x => x.Title.Contains(title ?? string.Empty), x => x.DateEvent);
+            var concerts = await repository.GetAsync(title); //GetAsync(x => x.Title.Contains(title ?? string.Empty), x => x.DateEvent);
             return Ok(concerts);
         }
 

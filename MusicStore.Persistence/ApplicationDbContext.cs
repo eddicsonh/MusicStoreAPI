@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MusicStore.Entities;
+using MusicStore.Entities.Info;
 using System.Reflection;
 
 namespace MusicStore.Persistence
@@ -20,6 +21,8 @@ namespace MusicStore.Persistence
             //modelBuilder.Entity<Genre>().HasKey(x => x.Id);
             //modelBuilder.Entity<Genre>().Property(x => x.Name).HasMaxLength(50);
             //modelBuilder.Entity<Genre>().Property(x => x.Status);
+
+            modelBuilder.Entity<ConcertInfo>().HasNoKey();
         }
 
         //Entities to table
