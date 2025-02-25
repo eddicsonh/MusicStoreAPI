@@ -15,13 +15,13 @@ namespace MusicStore.Repositories
         }
 
 
-        public virtual async Task<ICollection<TEntity>> GetAsync()
+        public async Task<ICollection<TEntity>> GetAsync()
         {
             return await context.Set<TEntity>()
                 .AsNoTracking()
                 .ToListAsync();
         }
-        public async Task<TEntity?> GetAsync(int id)
+        public virtual async Task<TEntity?> GetAsync(int id)
         {
             return await context.Set<TEntity>()
                 .FindAsync(id);

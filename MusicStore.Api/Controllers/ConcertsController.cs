@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using MusicStore.Dto;
-using MusicStore.Dto.Request;
-using MusicStore.Entities;
-using MusicStore.Repositories;
+﻿using Azure;
+using Microsoft.AspNetCore.Mvc;
+using MusicStore.Services.Interface;
 
 namespace MusicStore.Api.Controllers
 {
@@ -10,66 +8,62 @@ namespace MusicStore.Api.Controllers
     [Route("api/concerts")]
     public class ConcertsController : ControllerBase
     {
-        private readonly IConcertRepository repository;
-        private readonly IGenreRepository genreRepository;
-        private readonly ILogger<ConcertsController> logger;
-        public ConcertsController(IConcertRepository repository, IGenreRepository genreRepository,ILogger<ConcertsController> logger)
-        {
-            this.repository = repository;
-            this.genreRepository = genreRepository;
-            this.logger = logger;
-        }
+        private readonly IConcertService service;
 
-        [HttpGet]
-        public async Task<IActionResult> Get()
+        public ConcertsController(IConcertService service)
         {
-            //var response = BaseResponseGenerics<ICollection<ConcertResponseDto>>
-            var concerts = await repository.GetAsync();
-            return Ok(concerts);
+            this.service = service;
         }
 
         [HttpGet("title")]
         public async Task<IActionResult> Get(string? title)
         {
-            var concerts = await repository.GetAsync(title); //GetAsync(x => x.Title.Contains(title ?? string.Empty), x => x.DateEvent);
-            return Ok(concerts);
+            var response = await service.GetAsync(title);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Post(ConcertRequestDto concertRequestDto)
+        [HttpGet]
+        public async Task<IActionResult> Get(int id)
         {
-            var response = new BaseResponseGenerics<int>();
-            try
-            {
-                var genre = await genreRepository.GetAsync(concertRequestDto.GenreId);
-                if(genre is null)
-                {
-                    response.ErrorMessage = $"El id del Genero {concertRequestDto.GenreId} es incorrecto.";
-                    response.Success = false;
-                    logger.LogWarning(response.ErrorMessage);
-                    return BadRequest(response);
-                }
-                var concertDb = new Concert
-                {
-                    Title = concertRequestDto.Title,
-                    Description = concertRequestDto.Description,
-                    Place = concertRequestDto.Place,
-                    UnitePrice = concertRequestDto.UnitePrice,
-                    DateEvent = concertRequestDto.DateEvent,
-                    TicketQuantity = concertRequestDto.TicketQuantity,
-                    GenreId = concertRequestDto.GenreId,
-                    ImageUrl = concertRequestDto.ImageUrl,
-                };
-                response.Data = await repository.AddAsync(concertDb);
-                response.Success = true;
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                response.ErrorMessage = "Ocurrio un error al guardar la información.";
-                logger.LogError(ex, ex.Message);
-                throw;
-            }
+            var response = await service.GetAsync(id);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
+
+        //[HttpPost]
+        //public async Task<IActionResult> Post(ConcertRequestDto concertRequestDto)
+        //{
+        //    var response = new BaseResponseGenerics<int>();
+        //    try
+        //    {
+        //        var genre = await genreRepository.GetAsync(concertRequestDto.GenreId);
+        //        if(genre is null)
+        //        {
+        //            response.ErrorMessage = $"El id del Genero {concertRequestDto.GenreId} es incorrecto.";
+        //            response.Success = false;
+        //            logger.LogWarning(response.ErrorMessage);
+        //            return BadRequest(response);
+        //        }
+        //        var concertDb = new Concert
+        //        {
+        //            Title = concertRequestDto.Title,
+        //            Description = concertRequestDto.Description,
+        //            Place = concertRequestDto.Place,
+        //            UnitePrice = concertRequestDto.UnitePrice,
+        //            DateEvent = concertRequestDto.DateEvent,
+        //            TicketQuantity = concertRequestDto.TicketQuantity,
+        //            GenreId = concertRequestDto.GenreId,
+        //            ImageUrl = concertRequestDto.ImageUrl,
+        //        };
+        //        response.Data = await repository.AddAsync(concertDb);
+        //        response.Success = true;
+        //        return Ok(response);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        response.ErrorMessage = "Ocurrio un error al guardar la información.";
+        //        logger.LogError(ex, ex.Message);
+        //        throw;
+        //    }
+        //}
     }
 }
