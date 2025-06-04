@@ -1,4 +1,5 @@
-﻿using MusicStore.Dto.Response;
+﻿using MusicStore.Dto.Request;
+using MusicStore.Dto.Response;
 using MusicStore.Entities;
 using MusicStore.Entities.Info;
 
@@ -10,6 +11,7 @@ namespace MusicStore.Services.Profile
         {
             CreateMap<ConcertInfo, ConcertResponseDto>();
             CreateMap<Concert, ConcertResponseDto>();
+            CreateMap<ConcertRequestDto ,Concert>();
         }
 
     }
