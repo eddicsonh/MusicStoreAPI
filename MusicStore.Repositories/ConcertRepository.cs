@@ -11,14 +11,14 @@ namespace MusicStore.Repositories
         {
         }
 
-        //public override async Task<Concert?> GetAsync(int id)
-        //{
-        //    //eager loading approach
-        //    return await context.Set<Concert>()
-        //        .Include(x => x.Genre)
-        //        .AsNoTracking()
-        //        .FirstOrDefaultAsync(x => x.Id == id);
-        //}
+        public override async Task<Concert?> GetAsync(int id)
+        {
+            //eager loading approach
+            return await context.Set<Concert>()
+                .Include(x => x.Genre)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
+        }
 
         public async Task<ICollection<ConcertInfo>> GetAsync(string? title)
         {
